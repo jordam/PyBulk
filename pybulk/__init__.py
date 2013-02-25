@@ -1,6 +1,6 @@
 """
 Bulk API implementation
-For login and logout operation, utilizing the Beatbox library from https://github.com/superfell/Beatbox
+For login operation, utilizing the Beatbox library from https://github.com/superfell/Beatbox
 
 There are 3 objects included in this file
 * Callout       --> helper class to initiate GET / POST HTTP methods
@@ -15,6 +15,7 @@ There are 3 objects included in this file
 
 Created on Oct 26, 2012
 @author: sannymulyono
+
 """
 from pprint import pprint
 from xml.dom.minidom import *
@@ -212,12 +213,6 @@ class sfBulk(object):
             self.sessionid = str(loginResult[self.sf.sessionId])
         except SoapFaultError, e:
             sys.exit("unable to continue! -- " + e.faultString)
-
-    def logout(self):
-        """ logout user completely """
-        if self.sessionid is not None:
-            self.svc.logout()
-            self.sessionid = None
 
     def createJob(self, jobinfo):
         """ creating new job
