@@ -45,8 +45,6 @@ Instructions to do CRUD Operation
     batchIds = obb.createBatchFromCSV(jobinfo, "insert_csv.txt")
     # close the job
     obb.closeJob(jobinfo)
-    # logout
-    obb.logout()
 ```
 
 ##(U)pdate Operation:
@@ -60,7 +58,6 @@ Instructions to do CRUD Operation
     obb.createJob(jobinfo)
     batchIds = obb.createBatchFromCSV(jobinfo, "update_csv.txt")
     obb.closeJob(jobinfo)
-    obb.logout()
 ```
 
 ##(D)elete Operation:
@@ -74,7 +71,6 @@ Instructions to do CRUD Operation
     obb.createJob(jobinfo)
     batchIds = obb.createBatchFromCSV(jobinfo, "delete_csv.txt")
     obb.closeJob(jobinfo)
-    obb.logout()
 ```
 
 ##(R)ead / Query Operation:
@@ -90,7 +86,6 @@ Instructions to do CRUD Operation
     # you can also use SOQL directly using
     # batchId  = obb.createBatch(jobInfo, "Select id, name from Account")
     obb.closeJob(jobinfo)
-    obb.logout()
 ```
 
 ##Another operation included in the library:
@@ -115,6 +110,5 @@ Instructions to do CRUD Operation
     pprint(obb.showBatchResult(jobinfo, batchIds[0]))
     
     obb.closeJob(jobinfo)
-    obb.logout()
 ```   
     
