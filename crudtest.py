@@ -161,8 +161,5 @@ Choose your instance mode:
             pprint(obb.showBatchResult(jobinfo, batchId))
             
             # close the job
-            obb.closeJob(jobinfo)            
-    # logout completely
-    obb.logout()
-        
+            obb.closeJob(jobinfo)
     
