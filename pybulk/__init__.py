@@ -169,12 +169,16 @@ class sfBulk(object):
     MAX_RECORDS = 10000
 
     # LOGIN CREDENTIALS , CHANGE THIS FOR YOUR ORGANIZATION
-    USERNAME = "PUT YOUR USERNAME HERE"
-    PASSWORD = "PUT YOUR PASSWORD AND SECURITY TOKEN"
+    USERNAME = None#"PUT YOUR USERNAME HERE"
+    PASSWORD = None#"PUT YOUR PASSWORD AND SECURITY TOKEN"
 
     # CONSTANTS FOR XML ELEMENT IDENTIFIER
     ELEMENT_NODE = 1
     TEXT_NODE = 3
+
+    # RE-LOGIN SETTINGS
+    LOG_BACK_IN = True
+    LOG_BACK_IN_WAIT_TIME = 60*2
 
     def __init__(self, url_instance="https://na9.my.salesforce.com", newsession=None):
         """ standard constructor
@@ -202,10 +206,14 @@ class sfBulk(object):
         else:
             self.svc.serverUrl = "https://login.salesforce.com/services/Soap/u/" + self.API_VERSION
 
-        if username is None:
+	if username is None:
             username = self.USERNAME
+        else:
+            self.USERNAME = username
         if password is None:
             password = self.PASSWORD
+        else:
+            self.PASSWORD = password
 
         try:
             loginResult = self.svc.login(username, password)
@@ -228,6 +236,9 @@ class sfBulk(object):
             jobinfo.id = dict_result["id"]
             jobinfo.debug_result = dict_result
             print "Job " + jobinfo.id + " created ..... \n"
+	else:
+            if self.handle_errors(dict_result):
+                  self.createJob(jobinfo)
 
     def closeJob(self, jobinfo):
         """ closing job
@@ -245,6 +256,9 @@ class sfBulk(object):
             jobinfo.debug_result = dict_result
             jobinfo.state = dict_result["state"]
             print "Job " + jobinfo.id + " " + jobinfo.state + "..... \n"
+	else:
+	    if self.handle_errors(dict_result):
+                    self.closeJob(jobinfo)
 
     def createBatch(self, jobinfo, batchdata):
         """ create individual batch operation with batchdata (as string)
@@ -265,7 +279,10 @@ class sfBulk(object):
             print "Batch " + dict_result["id"] + " status is " + dict_result["state"] + "\n"
             return dict_result["id"]
         else:
-            return ""
+	    if self.handle_errors(dict_result):
+                    return self.closeJob(jobinfo)
+            else:
+                    return ""
 
     def createBatchFromCSV(self, jobinfo, cvsfile, maxrecord=None):
         """ create batch from csv file, also includes the max_record limitation
@@ -297,6 +314,9 @@ class sfBulk(object):
             if dict_result["id"] in jobinfo.batch:
                 jobinfo.batch[dict_result["id"]] = dict_result["state"]
                 print "Batch " + dict_result["id"] + " ... " + dict_result["state"]
+	else:
+	    if self.handle_errors(dict_result):
+                self.updateBatchStatus(jobinfo, batchId)
 
     def showBatchResult(self, jobinfo, batchId):
         """ show the specific batch result
@@ -317,8 +337,13 @@ class sfBulk(object):
                                      {"Content-Type": self.CONTENT_TYPE_CSV + '; charset=UTF-8'},
                                      "GET")
                 pprint(resp)
+	    else:
+		if self.handle_errors(dict_result):
+                        self.showBatchResult(jobinfo, batchId)
         except Exception, e:
             pprint(e)
+	    if self.handle_errors(dict_result):
+                self.updateBatchStatus(jobinfo, batchId)
 
     def parseXMLResult(self, raw_xml):
         """ helper methods to transform XML to dict
@@ -400,6 +425,16 @@ class sfBulk(object):
                         "User-Agent": self.USERAGENT}
         return headersValue
 
+    def handle_errors(self, retdic):
+        if 'exceptionCode' in retdic:
+                if retdic['exceptionCode'] == 'InvalidSessionId':
+			if self.LOG_BACK_IN:
+				print "INVALID SESSION, SLEEPING AND RETRYING"
+				time.sleep(self.LOG_BACK_IN_WAIT_TIME)
+				self.login()
+				return True
+        return False
+  
 
 def createxmlNode(element, value):
     """ utility to create XML Node Element
